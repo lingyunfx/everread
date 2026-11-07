@@ -1,0 +1,156 @@
+@import "tailwindcss";
+@import "pdfjs-dist/web/pdf_viewer.css";
+
+/* 三种主题：通过 <html data-theme> 切换，组件统一使用这些语义色 */
+@theme {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-fg: var(--c-fg);
+  --color-muted: var(--c-muted);
+  --color-border: var(--c-border);
+  --color-accent: var(--c-accent);
+  --color-accent-fg: var(--c-accent-fg);
+  --color-danger: var(--c-danger);
+  --font-sans: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif;
+}
+
+:root,
+[data-theme="light"] {
+  --c-bg: #f7f6f3;
+  --c-surface: #ffffff;
+  --c-surface-2: #efeeea;
+  --c-fg: #1c1c1c;
+  --c-muted: #75736e;
+  --c-border: #e3e1dc;
+  --c-accent: #24262b;
+  --c-accent-fg: #ffffff;
+  --c-danger: #c0392b;
+  --reader-bg: #ffffff;
+  --reader-fg: #1c1c1c;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-bg: #151618;
+  --c-surface: #1e1f22;
+  --c-surface-2: #2a2b2f;
+  --c-fg: #e6e5e2;
+  --c-muted: #9a9894;
+  --c-border: #34353a;
+  --c-accent: #e8e6e1;
+  --c-accent-fg: #18191b;
+  --c-danger: #ef6f61;
+  --reader-bg: #1b1c1f;
+  --reader-fg: #d8d5ce;
+  color-scheme: dark;
+}
+
+/* 暖黄色：仅为视觉配色 */
+[data-theme="sepia"] {
+  --c-bg: #efe4cc;
+  --c-surface: #f7eedb;
+  --c-surface-2: #e8dbbd;
+  --c-fg: #3b2f20;
+  --c-muted: #7c6a52;
+  --c-border: #dccba6;
+  --c-accent: #2e2a25;
+  --c-accent-fg: #fbf3e2;
+  --c-danger: #b23a2a;
+  --reader-bg: #f6ecd4;
+  --reader-fg: #3b2f20;
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PDF 页面 */
+.pdf-page {
+  position: relative;
+  margin: 0 auto 14px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
+  --user-unit: 1;
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+}
+.pdf-page canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pdf-filter-sepia .pdf-page canvas {
+  filter: sepia(0.45) saturate(1.1) brightness(0.96);
+}
+.pdf-filter-dark .pdf-page canvas {
+  filter: invert(0.88) hue-rotate(180deg);
+}
+.pdf-filter-dark .pdf-page {
+  background: #222;
+}
+.pdf-hl-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.pdf-hl-layer > div {
+  position: absolute;
+  mix-blend-mode: multiply;
+  border-radius: 2px;
+}
+.pdf-filter-dark .pdf-hl-layer > div {
+  mix-blend-mode: screen;
+}
+.pdf-page .textLayer {
+  z-index: 2;
+}
+.textLayer ::selection {
+  background: rgb(0 110 255 / 0.3);
+}
+
+/* 标注颜色 */
+.hl-yellow { background: rgb(255 214 0 / 0.42); }
+.hl-green { background: rgb(80 200 120 / 0.38); }
+.hl-blue { background: rgb(80 160 255 / 0.36); }
+.hl-pink { background: rgb(255 110 170 / 0.36); }
+.hl-flash {
+  outline: 2px solid transparent;
+  animation: hl-flash 2s ease-out forwards;
+}
+@keyframes hl-flash {
+  0%, 65% { background-color: rgb(255 140 0 / 0.5); outline-color: rgb(255 120 0); }
+  100% { background-color: transparent; outline-color: transparent; }
+}
+
+/* TXT 正文 */
+.txt-body p {
+  text-indent: 2em;
+  margin: 0 0 0.6em;
+  overflow-wrap: anywhere;
+}
+.txt-body mark {
+  color: inherit;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.txt-body mark.hl-flash {
+  cursor: default;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}

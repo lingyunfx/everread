@@ -33,3 +33,17 @@ Thumbs.db
 # 测试产物
 playwright-report/
 test-results/
+
+# 前端构建产物
+frontend/public/pdfjs/
+.pytest_tmp/
+
+# 端到端测试数据
+.e2e-data/
+
+# 调试脚本
+frontend/.debug/
+
+# Node / Playwright 临时缓存（临时目录被设到当前目录时会生成）
+node-compile-cache/
+playwright-transform-cache/

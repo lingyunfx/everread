@@ -1,0 +1,53 @@
+# EverRead 部署：前端（nginx，含 /api 反向代理）、FastAPI 后端、PostgreSQL。
+# 只有前端对外暴露端口，数据库只在内部网络中。
+# 用法：cp .env.example .env，修改其中的密钥和密码后执行 docker compose up -d --build
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-everread}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请在 .env 中设置 POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-everread}
+    volumes:
+      - ${DATA_PATH:-./data}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-everread}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-everread}
+      SECRET_KEY: ${SECRET_KEY:?请在 .env 中设置 SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER:-}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD:-}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-100}
+      PARSE_CONCURRENCY: ${PARSE_CONCURRENCY:-2}
+      DATA_DIR: /data
+    volumes:
+      - ${DATA_PATH:-./data}/books:/data
+    logging: *logging
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    logging: *logging
